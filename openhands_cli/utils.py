@@ -8,8 +8,7 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any
 
-from prompt_toolkit import print_formatted_text
-from prompt_toolkit.formatted_text import HTML
+from rich.console import Console
 
 from openhands.sdk import LLM, Agent, ImageContent, TextContent
 from openhands.sdk.event import SystemPromptEvent
@@ -211,7 +210,11 @@ def create_seeded_instructions_from_args(args: Namespace) -> list[str] | None:
         try:
             content = path.read_text(encoding="utf-8")
         except OSError as exc:
-            print_formatted_text(HTML(f"<red>Failed to read file {path}: {exc}</red>"))
+            Console(highlight=False, soft_wrap=True).print(
+                f"Failed to read file {path}: {exc}",
+                style="red",
+                markup=False,
+            )
             raise SystemExit(1)
 
         initial_message = (
@@ -260,7 +263,4 @@ def json_callback(event: Event) -> None:
     if isinstance(event, SystemPromptEvent):
         return
 
-    data = event.model_dump()
-    pretty_json = json.dumps(data, indent=2, sort_keys=True)
-    print("--JSON Event--")
-    print(pretty_json)
+    print(json.dumps(event.model_dump(), ensure_ascii=False))
